@@ -127,39 +127,39 @@ function render_dynamic_template_block($attributes, $content, $block) {
     $rendered_content = Timber::compile_string($template_content, $context);
 
     // If we're in the editor, check if we should show preview labels or rendered content
-    if (defined('REST_REQUEST') && REST_REQUEST) {
-        // Check if any preview values are set
-        $has_preview_values = false;
-        if (isset($attributes['contextBindings']) && is_array($attributes['contextBindings'])) {
-            foreach ($attributes['contextBindings'] as $binding) {
-                if (!empty($binding['preview_value'])) {
-                    $has_preview_values = true;
-                    break;
-                }
-            }
-        }
+    // if (defined('REST_REQUEST') && REST_REQUEST) { // 
+    //     // Check if any preview values are set
+    //     $has_preview_values = false;
+    //     if (isset($attributes['contextBindings']) && is_array($attributes['contextBindings'])) {
+    //         foreach ($attributes['contextBindings'] as $binding) {
+    //             if (!empty($binding['preview_value'])) {
+    //                 $has_preview_values = true;
+    //                 break;
+    //             }
+    //         }
+    //     }
 
-        // If no preview values are set, show the default label preview
-        if (!$has_preview_values) {
-            $source_labels = [];
-            if (isset($attributes['contextBindings']) && is_array($attributes['contextBindings'])) {
-                foreach ($attributes['contextBindings'] as $binding) {
-                    if (!empty($binding['source'])) {
-                        $registry = WP_Block_Bindings_Registry::get_instance();
-                        $source = $registry->get_registered($binding['source']);
-                        if ($source && isset($source->label)) {
-                            $source_labels[] = $source->label;
-                        } else {
-                            $source_labels[] = $binding['source'];
-                        }
-                    }
-                }
-            }
+    //     // If no preview values are set, show the default label preview
+    //     if (!$has_preview_values) {
+    //         $source_labels = [];
+    //         if (isset($attributes['contextBindings']) && is_array($attributes['contextBindings'])) {
+    //             foreach ($attributes['contextBindings'] as $binding) {
+    //                 if (!empty($binding['source'])) {
+    //                     $registry = WP_Block_Bindings_Registry::get_instance();
+    //                     $source = $registry->get_registered($binding['source']);
+    //                     if ($source && isset($source->label)) {
+    //                         $source_labels[] = $source->label;
+    //                     } else {
+    //                         $source_labels[] = $binding['source'];
+    //                     }
+    //                 }
+    //             }
+    //         }
 
-            $source_list = empty($source_labels) ? 'No bindings' : implode(', ', $source_labels);
-            return '<div>{{' . $source_list . '}}</div>';
-        }
-    }
+    //         $source_list = empty($source_labels) ? 'No bindings' : implode(', ', $source_labels);
+    //         return '<div>{{' . $source_list . '}}</div>';
+    //     }
+    // }
 
     return $rendered_content;
 }
