@@ -21,7 +21,7 @@
             var blockProps = useBlockProps();
 
             // Check if we're editing a wp_template
-            var isTemplate = wp.data && wp.data.select('core/editor') && 
+            var isTemplate = wp.data && wp.data.select('core/editor') &&
                 wp.data.select('core/editor').getCurrentPostType() === 'wp_template';
 
             // Get available binding sources
@@ -116,7 +116,7 @@
             // Function to get preview content based on mode
             var getPreviewContent = function() {
                 var previewMode = attributes.previewMode || 'default';
-                
+
                 switch (previewMode) {
                     case 'server-side':
                         return el(ServerSideRender, {
@@ -146,14 +146,14 @@
                             el('h4', { style: { marginTop: 0 } }, 'Preview Context'),
                             el(TextControl, {
                                 label: 'Post ID',
-                                help: 'Enter a post ID to preview template with actual data',
+                                help: 'Enter a post ID to preview template with actual data with server-side rendered preview',
                                 value: attributes.previewPostId || '',
                                 onChange: function(value) {
                                     setAttributes({ previewPostId: value });
                                 }
                             })
                         ]) : null,
-                        
+
                         // Context bindings
                         el('div', {}, [
                             el('h4', {}, 'Context Bindings'),
@@ -229,7 +229,7 @@
 
                                     el(TextControl, {
                                         label: 'Preview Value',
-                                        help: 'Optional default value to show in editor preview',
+                                        help: 'Optional default value to show in editor preview rendered with TwigJS',
                                         value: binding.preview_value || '',
                                         onChange: function(value) {
                                             var newBindings = [...(attributes.contextBindings || [])];
