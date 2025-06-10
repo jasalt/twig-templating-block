@@ -20,6 +20,10 @@
             var setAttributes = props.setAttributes;
             var blockProps = useBlockProps();
 
+            // Check if we're editing a wp_template
+            var isTemplate = wp.data && wp.data.select('core/editor') && 
+                wp.data.select('core/editor').getCurrentPostType() === 'wp_template';
+
             // Get available binding sources
             var getBindingSources = function() {
                 try {
@@ -129,6 +133,27 @@
             return el('div', blockProps, [
                 el(InspectorControls, { key: 'inspector' },
                     el(PanelBody, { title: 'Block Bindings' },
+                        // Preview Context (only for wp_template)
+                        isTemplate ? el('div', {
+                            style: {
+                                border: '1px solid #007cba',
+                                padding: '10px',
+                                marginBottom: '15px',
+                                borderRadius: '4px',
+                                backgroundColor: '#f0f6fc'
+                            }
+                        }, [
+                            el('h4', { style: { marginTop: 0 } }, 'Preview Context'),
+                            el(TextControl, {
+                                label: 'Post ID',
+                                help: 'Enter a post ID to preview template with actual data',
+                                value: attributes.previewPostId || '',
+                                onChange: function(value) {
+                                    setAttributes({ previewPostId: value });
+                                }
+                            })
+                        ]) : null,
+                        
                         // Context bindings
                         el('div', {}, [
                             el('h4', {}, 'Context Bindings'),

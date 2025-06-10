@@ -43,6 +43,10 @@ function register_dynamic_template_block() {
             'previewMode' => [
                 'type' => 'string',
                 'default' => 'default'
+            ],
+            'previewPostId' => [
+                'type' => 'string',
+                'default' => ''
             ]
         ],
         'supports' => [
@@ -104,7 +108,37 @@ function render_dynamic_template_block($attributes, $content, $block) {
                         $source = $registry->get_registered($binding_source);
 
                         if ($source) {
-                            $value = $source->get_value($binding_arguments, $block, $binding_key);
+                            // For editor preview with wp_template, inject preview context
+                            $source_args = $binding_arguments;
+                            if (defined('REST_REQUEST') && REST_REQUEST && 
+                                !empty($attributes['previewPostId'])) {
+                                
+                                $preview_post_id = intval($attributes['previewPostId']);
+                                if ($preview_post_id > 0 && get_post($preview_post_id)) {
+                                    // Temporarily modify global WordPress context
+                                    global $post;
+                                    $original_post = $post;
+                                    $post = get_post($preview_post_id);
+                                    
+                                    // Setup post data for the preview post
+                                    setup_postdata($post);
+                                    
+                                    $value = $source->get_value($source_args, $block, $binding_key);
+                                    
+                                    // Restore original global context
+                                    $post = $original_post;
+                                    if ($original_post) {
+                                        setup_postdata($original_post);
+                                    } else {
+                                        wp_reset_postdata();
+                                    }
+                                } else {
+                                    $value = $source->get_value($source_args, $block, $binding_key);
+                                }
+                            } else {
+                                $value = $source->get_value($source_args, $block, $binding_key);
+                            }
+                            
                             if (is_array($value) || is_object($value)) {
                                 $binding_value = $value;
                             } elseif (is_string($value)) {
