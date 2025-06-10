@@ -150,7 +150,7 @@
                                 }, [
                                     el(TextControl, {
                                         label: 'Variable Name',
-                                        value: binding.variableName || '',
+                                        value: binding.variableName || 'content',
                                         onChange: function(value) {
                                             var newBindings = [...(attributes.contextBindings || [])];
                                             newBindings[index] = { ...newBindings[index], variableName: value };
@@ -243,7 +243,7 @@
                                 onClick: function() {
                                     var newBindings = [...(attributes.contextBindings || [])];
                                     newBindings.push({
-                                        variableName: '',
+                                        variableName: 'content',
                                         source: '',
                                         arguments: '',
                                         preview_value: '',
