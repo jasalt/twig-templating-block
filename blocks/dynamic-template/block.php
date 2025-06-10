@@ -57,15 +57,11 @@ function register_dynamic_template_block() {
 }
 add_action('init', 'register_dynamic_template_block');
 
-// Server-side rendering with Twig
+use Timber\Timber;
+
+// Server-side rendering with Timber / Twig
 function render_dynamic_template_block($attributes, $content, $block) {
     $template_content = $attributes['twigTemplate'] ?? '<div class="wp-block-dynamic-template"><p>{{ content }}</p></div>';
-
-    $loader = new \Twig\Loader\ArrayLoader([
-        'template' => $template_content
-    ]);
-
-    $twig = new \Twig\Environment($loader);
 
     // Get block wrapper attributes including classes
     $wrapper_attributes = get_block_wrapper_attributes();
@@ -120,7 +116,7 @@ function render_dynamic_template_block($attributes, $content, $block) {
         }
     }
 
-    $rendered_content = $twig->render('template', $context);
+    $rendered_content = Timber::compile_string($template_content, $context);
 
     // If we're in the editor, check if we should show preview labels or rendered content
     if (defined('REST_REQUEST') && REST_REQUEST) {
