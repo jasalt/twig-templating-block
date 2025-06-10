@@ -63,7 +63,7 @@
 
                 var bindingText = sourceLabels.length === 0 ? 'No bindings' : sourceLabels.join(', ');
 
-                return el('div', {}, '{{' + bindingText + '}}');
+                return el('div', {}, '{{ ' + bindingText + ' }}');
             };
 
             // Function to render TwigJS preview
@@ -149,7 +149,7 @@
                                     }
                                 }, [
                                     el(TextControl, {
-                                        label: 'Variable Name',
+                                      label: 'Variable Name',
                                         value: binding.variableName || 'content',
                                         onChange: function(value) {
                                             var newBindings = [...(attributes.contextBindings || [])];
@@ -159,7 +159,7 @@
                                     }),
 
                                     el(ComboboxControl, {
-                                        label: 'Binding Source',
+                                      label: 'Binding Source',
                                         value: binding.source || '',
                                         options: bindingSources,
                                         maxSuggestions: 10,
@@ -178,8 +178,8 @@
                                     }),
 
                                     el(TextareaControl, {
-                                        label: 'Binding Arguments',
-                                        help: 'JSON object with arguments for the binding source, e.g. {"key": "demo_meta_key"}',
+                                      label: 'Binding Arguments (Optional)',
+                                        help: 'JSON object with arguments for the binding source, e.g. {"key": "my_meta"} that gets passed to binding value callback.',
                                         value: binding.arguments || '',
                                         onChange: function(value) {
                                             var newBindings = [...(attributes.contextBindings || [])];
@@ -208,8 +208,8 @@
                                     }),
 
                                     el(TextControl, {
-                                        label: 'Preview Value',
-                                        help: 'Optional default value to show in editor preview rendered with TwigJS',
+                                      label: 'Preview Value (Optional)',
+                                        help: 'Default value to show in editor preview rendered with TwigJS. It is experimental and needs to be set it in Preview Settings below to be effective.',
                                         value: binding.preview_value || '',
                                         onChange: function(value) {
                                             var newBindings = [...(attributes.contextBindings || [])];
@@ -274,7 +274,7 @@
                             options: [
                                 { value: 'default', label: 'Default (Binding Labels)' },
                                 { value: 'server-side', label: 'Server-Side Rendered' },
-                                { value: 'twigjs', label: 'TwigJS Rendered' }
+                              { value: 'twigjs', label: 'TwigJS Rendered (Beta)' }
                             ],
                             onChange: function(value) {
                                 setAttributes({ previewMode: value });
@@ -283,8 +283,8 @@
 
                         // Preview Context (only for wp_template)
                         isTemplate ? el(TextControl, {
-                            label: 'Post ID',
-                            help: 'Enter a post ID to preview template with actual data with server-side rendered preview. This is required as template preview does not have a specific Post ID.',
+                            label: 'Template Preview Post ID',
+                            help: 'Enter a Post ID to preview template with actual data with server-side rendered preview. This is required as template preview does not have a specific Post ID. Set Preview Mode above to Server-Side Rendered to see the effect.',
                             value: attributes.previewPostId || '',
                             onChange: function(value) {
                                 setAttributes({ previewPostId: value });
