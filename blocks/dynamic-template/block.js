@@ -84,7 +84,16 @@
                             } else if (binding.source) {
                                 var sourceObj = bindingSources.find(function(s) { return s.value === binding.source; });
                                 var sourceLabel = sourceObj ? sourceObj.label.split(' (')[0] : binding.source;
-                                context[binding.variableName] = '[' + sourceLabel + (binding.property ? ': ' + binding.property : '') + ']';
+                                var argsSuffix = '';
+                                if (binding.arguments) {
+                                    try {
+                                        var parsedArgs = JSON.parse(binding.arguments);
+                                        argsSuffix = ': ' + JSON.stringify(parsedArgs);
+                                    } catch (e) {
+                                        argsSuffix = ': [Invalid JSON]';
+                                    }
+                                }
+                                context[binding.variableName] = '[' + sourceLabel + argsSuffix + ']';
                             }
                         }
                     });
@@ -163,13 +172,14 @@
                                         }
                                     }),
 
-                                    el(TextControl, {
-                                        label: 'Binding Property',
-                                        value: binding.property || '',
+                                    el(TextareaControl, {
+                                        label: 'Binding Arguments',
+                                        help: 'JSON object with arguments for the binding source, e.g. {"key": "demo_meta_key"}',
+                                        value: binding.arguments || '',
                                         onChange: function(value) {
                                             var newBindings = [...(attributes.contextBindings || [])];
                                             var bindingKey = 'contextBinding' + index;
-                                            newBindings[index] = { ...newBindings[index], property: value, bindingKey: bindingKey };
+                                            newBindings[index] = { ...newBindings[index], arguments: value, bindingKey: bindingKey };
                                             setAttributes({ contextBindings: newBindings });
 
                                             // Update metadata bindings
@@ -177,12 +187,19 @@
                                             newMetadata.bindings = newMetadata.bindings || {};
                                             newMetadata.bindings[bindingKey] = newMetadata.bindings[bindingKey] || {};
                                             if (value) {
-                                                newMetadata.bindings[bindingKey].args = { property: value };
+                                                try {
+                                                    var parsedArgs = JSON.parse(value);
+                                                    newMetadata.bindings[bindingKey].args = parsedArgs;
+                                                } catch (e) {
+                                                    // If JSON is invalid, don't update args
+                                                    console.warn('Invalid JSON in binding arguments:', e);
+                                                }
                                             } else {
                                                 delete newMetadata.bindings[bindingKey].args;
                                             }
                                             setAttributes({ metadata: newMetadata });
-                                        }
+                                        },
+                                        rows: 3
                                     }),
 
                                     el(TextControl, {
@@ -224,7 +241,7 @@
                                     newBindings.push({
                                         variableName: '',
                                         source: '',
-                                        property: '',
+                                        arguments: '',
                                         preview_value: '',
                                         bindingKey: 'contextBinding' + newBindings.length
                                     });
