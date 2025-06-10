@@ -10,8 +10,8 @@
     var ServerSideRender = wp.serverSideRender;
 
 
-    blocks.registerBlockType('universal-blocks/dynamic-template', {
-        title: 'Dynamic Template',
+    blocks.registerBlockType('universal-blocks/twig-binding', {
+        title: 'Twig Binding Block',
         icon: 'embed-generic',
         category: 'text',
 
@@ -64,7 +64,7 @@
 
             // Function to render TwigJS preview
             var renderTwigJSPreview = function() {
-                var template = attributes.twigTemplate || '<div class="wp-block-dynamic-template"><p>{{ content }}</p></div>';
+                var template = attributes.twigTemplate || '<div class="wp-block-twig-binding"><p>{{ content }}</p></div>';
                 var contextBindings = attributes.contextBindings || [];
 
                 try {
@@ -103,11 +103,11 @@
             // Function to get preview content based on mode
             var getPreviewContent = function() {
                 var previewMode = attributes.previewMode || 'default';
-                
+
                 switch (previewMode) {
                     case 'server-side':
                         return el(ServerSideRender, {
-                            block: 'universal-blocks/dynamic-template',
+                            block: 'universal-blocks/twig-binding',
                             attributes: attributes
                         });
                     case 'twigjs':

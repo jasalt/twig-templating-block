@@ -5,7 +5,7 @@
 
 
 // Register the block
-function register_dynamic_template_block() {
+function register_twig_binding_block() {
     // Register Twig.js script from local static directory
     wp_register_script(
         'twigjs-library',
@@ -15,16 +15,16 @@ function register_dynamic_template_block() {
     );
 
     wp_register_script(
-        'dynamic-template-block-editor',
+        'twig-binding-block-editor',
         plugins_url('block.js', __FILE__),
         ['wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'twigjs-library'],
         filemtime(plugin_dir_path(__FILE__) . 'block.js')
     );
 
 
-    register_block_type('universal-blocks/dynamic-template', [
+    register_block_type('universal-blocks/twig-binding', [
         'editor_script' => 'dynamic-template-block-editor',
-        'render_callback' => 'render_dynamic_template_block',
+        'render_callback' => 'render_twig_binding_block',
         'attributes' => [
             'twigTemplate' => [
                 'type' => 'string',
@@ -55,11 +55,11 @@ function register_dynamic_template_block() {
         'uses_context' => ['postId', 'postType']
     ]);
 }
-add_action('init', 'register_dynamic_template_block');
+add_action('init', 'register_twig_binding_block');
 
 // Server-side rendering with Twig
-function render_dynamic_template_block($attributes, $content, $block) {
-    $template_content = $attributes['twigTemplate'] ?? '<div class="wp-block-dynamic-template"><p>{{ content }}</p></div>';
+function render_twig_binding_block($attributes, $content, $block) {
+    $template_content = $attributes['twigTemplate'] ?? '<div class="wp-block-twig-binding"><p>{{ content }}</p></div>';
 
     $loader = new \Twig\Loader\ArrayLoader([
         'template' => $template_content
