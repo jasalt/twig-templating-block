@@ -97,7 +97,7 @@
                                         argsSuffix = ': [Invalid JSON]';
                                     }
                                 }
-                                context[binding.variableName] = '[' + sourceLabel + argsSuffix + ']';
+                              context[binding.variableName] = '{{ ' + sourceLabel + argsSuffix + ' }}';
                             }
                         }
                     });
