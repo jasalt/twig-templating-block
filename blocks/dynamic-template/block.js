@@ -162,6 +162,7 @@
                                         label: 'Binding Source',
                                         value: binding.source || '',
                                         options: bindingSources,
+                                        maxSuggestions: 10,
                                         onChange: function(value) {
                                             var newBindings = [...(attributes.contextBindings || [])];
                                             var bindingKey = 'contextBinding' + index;
