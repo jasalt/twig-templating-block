@@ -68,7 +68,7 @@
 
             // Function to render TwigJS preview
             var renderTwigJSPreview = function() {
-                var template = attributes.twigTemplate || '<div class="wp-block-dynamic-template"><p>{{ content }}</p></div>';
+              var template = attributes.twigTemplate || '<div class="{{ editor_classes }}"><div>{{ content }}</div></div>';
                 var contextBindings = attributes.contextBindings || [];
 
                 try {

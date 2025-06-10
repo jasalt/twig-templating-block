@@ -28,8 +28,8 @@ function register_dynamic_template_block() {
         'attributes' => [
             'twigTemplate' => [
                 'type' => 'string',
-                'default' => '<div class="wp-block-dynamic-template">
-    <p>{{ content }}</p>
+                'default' => '<div class="{{ editor_classes }}">
+  <div>{{ content }}</div>
 </div>'
             ],
             'metadata' => [
@@ -65,7 +65,9 @@ use Timber\Timber;
 
 // Server-side rendering with Timber / Twig
 function render_dynamic_template_block($attributes, $content, $block) {
-    $template_content = $attributes['twigTemplate'] ?? '<div class="wp-block-dynamic-template"><p>{{ content }}</p></div>';
+    $template_content = $attributes['twigTemplate'] ?? '<div class="{{ editor_classes }}">
+  <div>{{ content }}</div>
+</div>';
 
     // Get block wrapper attributes including classes
     $wrapper_attributes = get_block_wrapper_attributes();
@@ -90,7 +92,7 @@ function render_dynamic_template_block($attributes, $content, $block) {
                 if (!empty($binding['variableName'])) {
                     $binding_key = 'contextBinding' . $index;
                     $binding_value = '';
-                    
+
                     // Read binding arguments from JSON
                     $binding_arguments = [];
                     if (!empty($binding['arguments'])) {
@@ -110,21 +112,21 @@ function render_dynamic_template_block($attributes, $content, $block) {
                         if ($source) {
                             // For editor preview with wp_template, inject preview context
                             $source_args = $binding_arguments;
-                            if (defined('REST_REQUEST') && REST_REQUEST && 
+                            if (defined('REST_REQUEST') && REST_REQUEST &&
                                 !empty($attributes['previewPostId'])) {
-                                
+
                                 $preview_post_id = intval($attributes['previewPostId']);
                                 if ($preview_post_id > 0 && get_post($preview_post_id)) {
                                     // Temporarily modify global WordPress context
                                     global $post;
                                     $original_post = $post;
                                     $post = get_post($preview_post_id);
-                                    
+
                                     // Setup post data for the preview post
                                     setup_postdata($post);
-                                    
+
                                     $value = $source->get_value($source_args, $block, $binding_key);
-                                    
+
                                     // Restore original global context
                                     $post = $original_post;
                                     if ($original_post) {
@@ -138,7 +140,7 @@ function render_dynamic_template_block($attributes, $content, $block) {
                             } else {
                                 $value = $source->get_value($source_args, $block, $binding_key);
                             }
-                            
+
                             if (is_array($value) || is_object($value)) {
                                 $binding_value = $value;
                             } elseif (is_string($value)) {
@@ -161,7 +163,7 @@ function render_dynamic_template_block($attributes, $content, $block) {
     $rendered_content = Timber::compile_string($template_content, $context);
 
     // If we're in the editor, check if we should show preview labels or rendered content
-    // if (defined('REST_REQUEST') && REST_REQUEST) { // 
+    // if (defined('REST_REQUEST') && REST_REQUEST) { //
     //     // Check if any preview values are set
     //     $has_preview_values = false;
     //     if (isset($attributes['contextBindings']) && is_array($attributes['contextBindings'])) {
