@@ -86,17 +86,25 @@ function render_dynamic_template_block($attributes, $content, $block) {
                 if (!empty($binding['variableName'])) {
                     $binding_key = 'contextBinding' . $index;
                     $binding_value = '';
+                    
+                    // Read binding arguments from JSON
+                    $binding_arguments = [];
+                    if (!empty($binding['arguments'])) {
+                        $decoded_args = json_decode($binding['arguments'], true);
+                        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded_args)) {
+                            $binding_arguments = $decoded_args;
+                        }
+                    }
 
-                    // Check if this binding exists in metadata
-                    if (isset($bindings[$binding_key])) {
-                        $binding_source = $bindings[$binding_key]['source'];
-                        $binding_args = isset($bindings[$binding_key]['args']) ? $bindings[$binding_key]['args'] : [];
+                    // Get binding source and use parsed arguments
+                    if (!empty($binding['source'])) {
+                        $binding_source = $binding['source'];
 
                         $registry = WP_Block_Bindings_Registry::get_instance();
                         $source = $registry->get_registered($binding_source);
 
                         if ($source) {
-                            $value = $source->get_value($binding_args, $block, $binding_key);
+                            $value = $source->get_value($binding_arguments, $block, $binding_key);
                             if (is_array($value) || is_object($value)) {
                                 $binding_value = $value;
                             } elseif (is_string($value)) {
