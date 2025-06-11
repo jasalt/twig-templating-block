@@ -85,25 +85,20 @@ function render_dynamic_template_block($attributes, $content, $block) {
 
 	if (defined('REST_REQUEST') && REST_REQUEST && !empty($attributes['previewPostId'])) {
 		$preview_post_id = intval($attributes['previewPostId']);
-		if ($preview_post_id > 0 && get_post($preview_post_id)) {
-			// Store original post for later restoration
+		if ($preview_post_id > 0 && get_post($preview_post_id)) { // Set context with preview post
 			global $post;
-			$original_post = $post;
+			$original_post = $post;  // Store original for later restoration
 
-			// Get preview post using Timber
-			$preview_post = Timber::get_post($preview_post_id);
-
+			$post = get_post($preview_post_id);
 			setup_postdata($post);
-
-			// Set context with preview post
-			$timber_post = $preview_post;
 			$preview_context_active = true;
+
+			$timber_post = Timber::get_post($preview_post_id);
 		}
 	} else {
 		$timber_post = Timber::get_post();
 	}
 
-	// $context = Timber::context($context_options);  // TODO this is not usable within block rendering context, it overrides t
 	$context = Timber::context_global();
 	$context['post'] = $timber_post;
 
