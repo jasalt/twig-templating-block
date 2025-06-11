@@ -78,22 +78,29 @@ function render_dynamic_template_block($attributes, $content, $block) {
         $editor_classes = $matches[1];
     }
 
-    // Handle preview context setup before Timber::context()
+    // Handle preview context setup using Timber's approach
     $original_post = null;
     $preview_context_active = false;
+    $context_options = [];
     
     if (defined('REST_REQUEST') && REST_REQUEST && !empty($attributes['previewPostId'])) {
         $preview_post_id = intval($attributes['previewPostId']);
         if ($preview_post_id > 0 && get_post($preview_post_id)) {
+            // Store original post for later restoration
             global $post;
             $original_post = $post;
-            $post = get_post($preview_post_id);
-            setup_postdata($post);
+            
+            // Get preview post using Timber
+            $preview_post = Timber::get_post($preview_post_id);
+            $preview_post->setup();
+            
+            // Set context with preview post
+            $context_options['post'] = $preview_post;
             $preview_context_active = true;
         }
     }
 
-    $context = Timber::context();
+    $context = Timber::context($context_options);
     $context['attributes'] = [];
     $context['editor_classes'] = $editor_classes;
 
@@ -147,18 +154,14 @@ function render_dynamic_template_block($attributes, $content, $block) {
     $rendered_content = Timber::compile_string($template_content, $context);
     
     // Restore original global context after Timber compilation
-    if ($preview_context_active) {
+    if ($preview_context_active && $original_post) {
         global $post;
         $post = $original_post;
-        if ($original_post) {
-            setup_postdata($original_post);
-        } else {
-            wp_reset_postdata();
-        }
+        setup_postdata($original_post);
     }
     
 
-    // If we're in the editor, check if we should show preview labels or rendered content
+    // If we're in the editor, check if we should show preview labels or rendered content (Disabled for now, only used with TwigJS)
     // if (defined('REST_REQUEST') && REST_REQUEST) { //
     //     // Check if any preview values are set
     //     $has_preview_values = false;
