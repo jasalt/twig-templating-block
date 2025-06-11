@@ -78,11 +78,9 @@ function render_dynamic_template_block($attributes, $content, $block) {
         $editor_classes = $matches[1];
     }
 
-    // Process context bindings
-    $context = [
-        'attributes' => [],
-        'editor_classes' => $editor_classes
-    ];
+    $context = Timber::context();
+    $context['attributes'] = [];
+    $context['editor_classes'] = $editor_classes;
 
     if (isset($block->parsed_block['attrs']['metadata']['bindings'])) {
         $bindings = $block->parsed_block['attrs']['metadata']['bindings'];
