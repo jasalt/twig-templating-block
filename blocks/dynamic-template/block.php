@@ -52,12 +52,35 @@ function register_dynamic_template_block() {
 		'supports' => [
 			'align' => true,
 			'html' => false,
+			//'innerBlocks' => true,
 			'typography' => [
 				'fontSize' => true
 			]
 		],
 		'uses_context' => ['postId', 'postType']
 	]);
+
+	// Add the Twig function globally to Timber
+	add_filter( 'timber/twig', function( $twig ) {
+		$twig->addFunction( new \Twig\TwigFunction('include_template_part', function ($template_part_id) {
+			// If the user passes the template part slug without theme, then we use current theme's slug
+			$full_id = $template_part_id;
+			// Check if the ID has the double-slash separator
+			if (strpos($template_part_id, '//') === false) {
+				$theme = wp_get_theme();
+				$full_id = $theme->get_stylesheet() . '//' . $template_part_id;
+			}
+
+			$template_part = get_block_template($full_id, 'wp_template_part');
+
+			if ($template_part && !empty($template_part->content)) {
+				return do_blocks($template_part->content);
+			}
+
+			return '';
+		}));
+		return $twig;
+	} );
 }
 add_action('init', 'register_dynamic_template_block');
 
@@ -107,6 +130,7 @@ function render_dynamic_template_block($attributes, $content, $block) {
 
 	$context['attributes'] = [];
 	$context['editor_classes'] = $editor_classes;
+	// $context['inner_blocks'] = do_blocks($content);
 
 	if (isset($block->parsed_block['attrs']['metadata']['bindings'])) {
 		$bindings = $block->parsed_block['attrs']['metadata']['bindings'];
