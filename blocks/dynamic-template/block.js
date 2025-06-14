@@ -37,9 +37,29 @@
                 }
                 return [];
             };
+            var getPatterns = function() {
+                try {
+                    if (wp.data && wp.data.select('core')) {
+                        var patterns = wp.data.select('core').getEntityRecords('postType', 'wp_block', { per_page: -1 });
+                        return patterns ? patterns.map(function(p) {
+                            return {
+                                name: p.slug,
+                                title: p.title.raw || p.slug,
+                                content: p.content.rendered
+                            };
+                        }) : [];
+                    }
+                } catch (e) {
+                    console.warn('Could not access patterns:', e);
+                }
+                return [];
+            };
+
             var templateParts = getTemplateParts();
+            var patterns = getPatterns();
 
             // Get available binding sources
+
             var getBindingSources = function() {
                 try {
                     if (wp.blocks && wp.blocks.getBlockBindingsSources) {
@@ -88,7 +108,21 @@
 
                 try {
                     var twigTemplate = Twig.twig({
-                        data: template
+                        data: template,
+                        functions: [
+                            {
+                                name: 'include_pattern',
+                                func: function(slug) {
+                                    return `<div style="
+                                           border:1px dashed #888;
+                                           padding: .5rem;
+                                           margin: .5rem 0;
+                                           color: #888">
+                                        Pattern: ${slug} (preview)
+                                    </div>`;
+                                }
+                            }
+                        ]
                     });
 
                     // Create context with preview values or binding labels
@@ -145,25 +179,51 @@
                 }
             };
 
-            // Add template parts section if there are any
-            var templatePartsSection = null;
-            if (templateParts && templateParts.length > 0) {
-                templatePartsSection = el(PanelBody, { title: 'Available Template Parts', key: 'available-template-parts' },
-                    el('p', { style: { marginBottom: '16px' } },
-                        'To include in Twig template, use: {{ include_template_part(\'slug-here\') }}'
+            // Build Available Includes panel (template parts and patterns)
+            var templatePartsSection = el(PanelBody, { title: 'Available Includes', key: 'available-includes' },
+                // Template parts section
+                templateParts && templateParts.length > 0
+                    ? el('div', null, [
+                          el('h4', null, 'Template Parts'),
+                          el('p', { style: { marginBottom: '16px', fontStyle: 'italic' } },
+                              '{{ include_template_part(\'slug-here\') }}'
+                          ),
+                          el('ul', { style: { paddingLeft: '1.5rem', listStyleType: 'disc' } },
+                              templateParts.map(function(part) {
+                                  return el('li', { key: part.id }, part.slug + (part.title ? ' (' + part.title.rendered + ')' : ''));
+                              })
+                          )
+                      ])
+                    : el('div', null, [
+                          el('h4', null, 'Template Parts'),
+                          el('p', {}, 'No template parts found.'),
+                          el('p', { style: { fontStyle: 'italic' } }, '{{ include_template_part(\'slug-here\') }}')
+                      ]),
+
+                // Patterns section
+                el('div', null, [
+                    el('h4', { style: { marginTop: '20px'} }, 'Patterns'),
+                    el('p', { style: { marginBottom: '16px', fontStyle: 'italic' } },
+                        '{{ include_pattern(\'slug-here\') }}'
                     ),
-                    el('ul', { style: { paddingLeft: '1.5rem', listStyleType: 'disc' } },
-                        templateParts.map(function(part) {
-                            return el('li', { key: part.id }, part.slug + (part.title ? ' (' + part.title.rendered + ')' : ''));
-                        })
-                    )
-                );
-            } else {
-                templatePartsSection = el(PanelBody, { title: 'Available Template Parts', key: 'available-template-parts' },
-                    el('p', {}, 'No template parts found.'),
-                    el('p', { style: { fontStyle: 'italic' } }, 'Once available, include them in Twig template with: {{ include_template_part(\'slug-here\') }}')
-                );
-            }
+                    patterns.length === 0
+                        ? el('p', {}, 'No patterns found.')
+                        : el('ul', { style: { paddingLeft: '1.5rem', listStyleType: 'disc' } },
+                            patterns.map(function(pattern) {
+                                return el('li', {
+                                    key: pattern.name,
+                                    onClick: function() {
+                                        var includeCode = `{{ include_pattern('${pattern.name}') }}\n`;
+                                        setAttributes({
+                                            twigTemplate: attributes.twigTemplate + includeCode
+                                        });
+                                    },
+                                    style: { }
+                                }, pattern.name + (pattern.title && pattern.title !== pattern.name ? ' (' + pattern.title + ')' : ''));
+                            })
+                        )
+                ])
+            );
 
             return el('div', blockProps, [
                 el(InspectorControls, { key: 'inspector' },
@@ -293,7 +353,7 @@
                     el(PanelBody, { title: 'Template Settings' },
                         el(TextareaControl, {
                             label: 'Twig Template',
-                            help: 'Use {{ variableName }} to access context binding variables. To include template parts, use {{ include_template_part(\'part-slug\') }}. Available parts are listed above. For editor styling (font size etc.), include class="{{ editor_classes }}" in your template elements. Template parts must be registered in theme and visible in editor.',
+                            help: 'Use {{ variableName }} to access context binding variables. To include patterns use {{ include_pattern(\'pattern-slug\') }}. To include template parts, use {{ include_template_part(\'part-slug\') }} (available parts are listed above). For editor styling (font size etc.), include class="{{ editor_classes }}" in your template elements.',
                             value: attributes.twigTemplate,
                             onChange: function(value) {
                                 setAttributes({ twigTemplate: value });

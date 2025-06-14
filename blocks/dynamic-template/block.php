@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Plugin Name: Dynamic Template Block
  */
 
+use Timber\Timber;
 
 // Register the block
 function register_dynamic_template_block() {
@@ -62,6 +64,19 @@ function register_dynamic_template_block() {
 
 	// Add the Twig function globally to Timber
 	add_filter( 'timber/twig', function( $twig ) {
+		$twig->addFunction( new \Twig\TwigFunction('include_pattern', function ($slug) {
+			if (!$slug || !is_string($slug)) return '';
+
+			$block = [
+				'blockName' => 'core/pattern',
+				'attrs' => [
+					'slug' => $slug
+				],
+				'innerContent' => [],
+			];
+
+			return render_block($block);
+		}));
 		$twig->addFunction( new \Twig\TwigFunction('include_template_part', function ($template_part_id) {
 			// If the user passes the template part slug without theme, then we use current theme's slug
 			$full_id = $template_part_id;
@@ -80,11 +95,9 @@ function register_dynamic_template_block() {
 			return '';
 		}));
 		return $twig;
-	} );
+	});
 }
 add_action('init', 'register_dynamic_template_block');
-
-use Timber\Timber;
 
 // Server-side rendering with Timber / Twig
 function render_dynamic_template_block($attributes, $content, $block) {
