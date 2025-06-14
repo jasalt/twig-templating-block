@@ -180,7 +180,7 @@
             };
 
             // Build Available Includes panel (template parts and patterns)
-            var templatePartsSection = el(PanelBody, { title: 'Available Includes', key: 'available-includes' },
+            var templatePartsSection = el(PanelBody, { title: 'Available Includes', key: 'available-includes', initialOpen: false },
                 // Template parts section
                 templateParts && templateParts.length > 0
                     ? el('div', null, [
