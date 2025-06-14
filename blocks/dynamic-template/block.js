@@ -24,6 +24,20 @@
             var isTemplate = wp.data && wp.data.select('core/editor') &&
                 wp.data.select('core/editor').getCurrentPostType() === 'wp_template';
 
+            // Get available template parts
+            var getTemplateParts = function() {
+                try {
+                    if (wp.data && wp.data.select('core')) {
+                        var templateParts = wp.data.select('core').getEntityRecords('postType', 'wp_template_part', { per_page: -1 });
+                        return templateParts || [];
+                    }
+                } catch (e) {
+                    console.warn('Could not access template parts:', e);
+                }
+                return [];
+            };
+            var templateParts = getTemplateParts();
+
             // Get available binding sources
             var getBindingSources = function() {
                 try {
@@ -129,6 +143,22 @@
                         return renderDefaultPreview();
                 }
             };
+
+            // Add template parts section if there are any
+            var templatePartsSection = null;
+            if (templateParts && templateParts.length > 0) {
+                templatePartsSection = el(PanelBody, { title: 'Available Template Parts', key: 'available-template-parts' },
+                    el('ul', { style: { paddingLeft: '1.5rem', listStyleType: 'disc' } },
+                        templateParts.map(function(part) {
+                            return el('li', { key: part.id }, part.slug + (part.title ? ' (' + part.title.rendered + ')' : ''));
+                        })
+                    )
+                );
+            } else {
+                templatePartsSection = el(PanelBody, { title: 'Available Template Parts', key: 'available-template-parts' },
+                    el('p', {}, 'No template parts found')
+                );
+            }
 
             return el('div', blockProps, [
                 el(InspectorControls, { key: 'inspector' },
@@ -290,7 +320,8 @@
                                 setAttributes({ previewPostId: value });
                             }
                         }) : null
-                    )
+                    ),
+                    templatePartsSection
                 ),
 
                 // Render preview based on selected mode
