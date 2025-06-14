@@ -67,15 +67,16 @@ function register_dynamic_template_block() {
 		$twig->addFunction( new \Twig\TwigFunction('include_pattern', function ($slug) {
 			if (!$slug || !is_string($slug)) return '';
 
-			$block = [
-				'blockName' => 'core/pattern',
-				'attrs' => [
-					'slug' => $slug
-				],
-				'innerContent' => [],
-			];
-
-			return render_block($block);
+			$patterns = get_posts([
+				'post_type' => 'wp_block',
+				'name' => $slug,
+				'posts_per_page' => 1,
+				'post_status' => 'publish'
+			]);
+			
+			if (empty($patterns)) return '';
+			
+			return do_blocks($patterns[0]->post_content);
 		}));
 		$twig->addFunction( new \Twig\TwigFunction('include_template_part', function ($template_part_id) {
 			// If the user passes the template part slug without theme, then we use current theme's slug
