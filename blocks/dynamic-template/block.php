@@ -192,7 +192,24 @@ function render_dynamic_template_block($attributes, $content, $block) {
 		}
 	}
 
-	$rendered_content = Timber::compile_string($template_content, $context);
+	$rendered_content = '';
+	try {
+		$rendered_content = Timber::compile_string($template_content, $context);
+	} catch (\Exception $e) {
+		error_log('Error rendering dynamic template block: ' . $e->getMessage());
+		if (current_user_can('manage_options')) {
+			// Show detailed error to admins
+			$rendered_content = '<div class="error" style="border:2px dashed red; padding: 20px;">'
+				. '<strong>' . esc_html__('Twig Error:', 'universal-blocks') . '</strong> '
+				. esc_html($e->getMessage())
+				. '</div>';
+		} else {
+			// Generic message for non-admins
+			$rendered_content = '<div class="error">'
+				. esc_html__('Block rendering error. Please contact administrator.', 'universal-blocks')
+				. '</div>';
+		}
+	}
 
 	// Restore original global context after Timber compilation
 	if ($preview_context_active && $original_post) {
