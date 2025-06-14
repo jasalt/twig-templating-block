@@ -148,6 +148,9 @@
             var templatePartsSection = null;
             if (templateParts && templateParts.length > 0) {
                 templatePartsSection = el(PanelBody, { title: 'Available Template Parts', key: 'available-template-parts' },
+                    el('p', { style: { marginBottom: '16px' } },
+                        'To include in Twig template, use: {{ include_template_part(\'slug-here\') }}'
+                    ),
                     el('ul', { style: { paddingLeft: '1.5rem', listStyleType: 'disc' } },
                         templateParts.map(function(part) {
                             return el('li', { key: part.id }, part.slug + (part.title ? ' (' + part.title.rendered + ')' : ''));
@@ -156,7 +159,8 @@
                 );
             } else {
                 templatePartsSection = el(PanelBody, { title: 'Available Template Parts', key: 'available-template-parts' },
-                    el('p', {}, 'No template parts found')
+                    el('p', {}, 'No template parts found.'),
+                    el('p', { style: { fontStyle: 'italic' } }, 'Once available, include them in Twig template with: {{ include_template_part(\'slug-here\') }}')
                 );
             }
 
@@ -288,7 +292,7 @@
                     el(PanelBody, { title: 'Template Settings' },
                         el(TextareaControl, {
                             label: 'Twig Template',
-                            help: 'Use {{ variableName }} to access bound data from context bindings above. If you style the block in editor (such as changing the font size), you need to include class="{{ editor_classes }}" to relevant element in Twig template.',
+                            help: 'Use {{ variableName }} to access context binding variables. To include template parts, use {{ include_template_part(\'part-slug\') }}. Available parts are listed above. For editor styling (font size etc.), include class="{{ editor_classes }}" in your template elements. Template parts must be registered in theme and visible in editor.',
                             value: attributes.twigTemplate,
                             onChange: function(value) {
                                 setAttributes({ twigTemplate: value });
