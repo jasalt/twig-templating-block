@@ -14,6 +14,7 @@
         title: 'Dynamic Template',
         icon: 'embed-generic',
         category: 'text',
+        apiVersion: 2,
 
         edit: function(props) {
             var attributes = props.attributes;
