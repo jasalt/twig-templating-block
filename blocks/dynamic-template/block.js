@@ -190,7 +190,20 @@
                           ),
                           el('ul', { style: { paddingLeft: '1.5rem', listStyleType: 'disc' } },
                               templateParts.map(function(part) {
-                                  return el('li', { key: part.id }, part.slug + (part.title ? ' (' + part.title.rendered + ')' : ''));
+                                  return el('li', { 
+                                      key: part.id, 
+                                      onClick: function() {
+                                          var includeCode = `{{ include_template_part('${part.slug}') }}\n`;
+                                          setAttributes({
+                                              twigTemplate: attributes.twigTemplate + includeCode
+                                          });
+                                      },
+                                      style: { 
+                                          color: '#1e35b9',
+                                          textDecoration: 'underline',
+                                          cursor: 'pointer'
+                                      }
+                                  }, part.slug + (part.title ? ' (' + part.title.rendered + ')' : ''));
                               })
                           )
                       ])
@@ -218,11 +231,23 @@
                                             twigTemplate: attributes.twigTemplate + includeCode
                                         });
                                     },
-                                    style: { }
+                                    style: {
+                                        color: '#1e35b9',
+                                        textDecoration: 'underline',
+                                        cursor: 'pointer' 
+                                    }
                                 }, pattern.name + (pattern.title && pattern.title !== pattern.name ? ' (' + pattern.title + ')' : ''));
                             })
                         )
-                ])
+                ]),
+                el('p', { 
+                    style: { 
+                        marginTop: '20px',
+                        fontSize: '0.8em',
+                        color: '#666',
+                        fontStyle: 'italic'
+                    }
+                }, 'Clicking template part or pattern slug inserts it into the Twig template')
             );
 
             return el('div', blockProps, [
