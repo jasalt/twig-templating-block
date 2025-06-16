@@ -1,5 +1,6 @@
 (function(blocks, element, blockEditor, components) {
     var el = element.createElement;
+    var useState = element.useState;
     var TextControl = components.TextControl;
     var TextareaControl = components.TextareaControl;
     var ToggleControl = components.ToggleControl;
@@ -8,6 +9,9 @@
     var InspectorControls = blockEditor.InspectorControls;
     var useBlockProps = blockEditor.useBlockProps;
     var ServerSideRender = wp.serverSideRender;
+    var BlockControls = blockEditor.BlockControls;
+    var ToolbarGroup = components.ToolbarGroup;
+    var ToolbarButton = components.ToolbarButton;
 
 
     blocks.registerBlockType('universal-blocks/dynamic-template', {
@@ -20,6 +24,7 @@
             var attributes = props.attributes;
             var setAttributes = props.setAttributes;
             var blockProps = useBlockProps();
+            var [isEditingTemplate, setIsEditingTemplate] = useState(false);
 
             // Check if we're editing a wp_template
             var isTemplate = wp.data && wp.data.select('core/editor') &&
@@ -250,171 +255,200 @@
                 }, 'Clicking template part or pattern slug inserts it into the Twig template')
             );
 
-            return el('div', blockProps, [
-                el(InspectorControls, { key: 'inspector' },
-                    el(PanelBody, { title: 'Block Bindings' },
-                        // Context bindings
-                        el('div', {}, [
-                            el('h4', {}, 'Context Bindings'),
+            const toolbarControls = el(BlockControls, { key: 'controls' },
+                el(ToolbarGroup, null,
+                    el(ToolbarButton, {
+                        icon: 'edit',
+                        label: isEditingTemplate ? 'Preview Mode' : 'Edit Twig Template',
+                        onClick: () => setIsEditingTemplate(!isEditingTemplate),
+                        isActive: isEditingTemplate
+                    })
+                )
+            );
 
-                            // Render existing context bindings
-                            (attributes.contextBindings || []).map(function(binding, index) {
-                                return el('div', {
-                                    key: index,
-                                    style: {
-                                        border: '1px solid #ddd',
-                                        padding: '10px',
-                                        marginBottom: '10px',
-                                        borderRadius: '4px'
-                                    }
-                                }, [
-                                    el(TextControl, {
-                                      label: 'Variable Name',
-                                        value: binding.variableName || 'content',
-                                        onChange: function(value) {
-                                            var newBindings = [...(attributes.contextBindings || [])];
-                                            newBindings[index] = { ...newBindings[index], variableName: value };
-                                            setAttributes({ contextBindings: newBindings });
-                                        }
-                                    }),
+            const inspector = el(InspectorControls, { key: 'inspector' },
+                el(PanelBody, { title: 'Block Bindings' },
+                    // Context bindings
+                    el('div', {}, [
+                        el('h4', {}, 'Context Bindings'),
 
-                                    el(ComboboxControl, {
-                                      label: 'Binding Source',
-                                        value: binding.source || '',
-                                        options: bindingSources,
-                                        maxSuggestions: 10,
-                                        onChange: function(value) {
-                                            var newBindings = [...(attributes.contextBindings || [])];
-                                            var bindingKey = 'contextBinding' + index;
-                                            newBindings[index] = { ...newBindings[index], source: value, bindingKey: bindingKey };
-                                            setAttributes({ contextBindings: newBindings });
-
-                                            // Update metadata bindings
-                                            var newMetadata = JSON.parse(JSON.stringify(attributes.metadata || {}));
-                                            newMetadata.bindings = newMetadata.bindings || {};
-                                            newMetadata.bindings[bindingKey] = { source: value };
-                                            setAttributes({ metadata: newMetadata });
-                                        }
-                                    }),
-
-                                    el(TextareaControl, {
-                                      label: 'Binding Arguments (Optional)',
-                                        help: 'JSON object with arguments for the binding source, e.g. {"key": "my_meta"} that gets passed to binding value callback.',
-                                        value: binding.arguments || '',
-                                        onChange: function(value) {
-                                            var newBindings = [...(attributes.contextBindings || [])];
-                                            var bindingKey = 'contextBinding' + index;
-                                            newBindings[index] = { ...newBindings[index], arguments: value, bindingKey: bindingKey };
-                                            setAttributes({ contextBindings: newBindings });
-
-                                            // Update metadata bindings
-                                            var newMetadata = JSON.parse(JSON.stringify(attributes.metadata || {}));
-                                            newMetadata.bindings = newMetadata.bindings || {};
-                                            newMetadata.bindings[bindingKey] = newMetadata.bindings[bindingKey] || {};
-                                            if (value) {
-                                                try {
-                                                    var parsedArgs = JSON.parse(value);
-                                                    newMetadata.bindings[bindingKey].args = parsedArgs;
-                                                } catch (e) {
-                                                    // If JSON is invalid, don't update args
-                                                    console.warn('Invalid JSON in binding arguments:', e);
-                                                }
-                                            } else {
-                                                delete newMetadata.bindings[bindingKey].args;
-                                            }
-                                            setAttributes({ metadata: newMetadata });
-                                        },
-                                        rows: 3
-                                    }),
-
-                                    el(TextControl, {
-                                      label: 'Preview Value (Optional)',
-                                        help: 'Default value to show in editor preview rendered with TwigJS. It is experimental and needs to be set it in Preview Settings below to be effective.',
-                                        value: binding.preview_value || '',
-                                        onChange: function(value) {
-                                            var newBindings = [...(attributes.contextBindings || [])];
-                                            newBindings[index] = { ...newBindings[index], preview_value: value };
-                                            setAttributes({ contextBindings: newBindings });
-                                        }
-                                    }),
-
-                                    el('button', {
-                                        className: 'button button-secondary',
-                                        style: { marginTop: '10px' },
-                                        onClick: function() {
-                                            var newBindings = [...(attributes.contextBindings || [])];
-                                            var bindingKey = 'contextBinding' + index;
-                                            newBindings.splice(index, 1);
-                                            setAttributes({ contextBindings: newBindings });
-
-                                            // Remove from metadata bindings
-                                            var newMetadata = JSON.parse(JSON.stringify(attributes.metadata || {}));
-                                            if (newMetadata.bindings && newMetadata.bindings[bindingKey]) {
-                                                delete newMetadata.bindings[bindingKey];
-                                            }
-                                            setAttributes({ metadata: newMetadata });
-                                        }
-                                    }, 'Remove')
-                                ]);
-                            }),
-
-                            // Add new binding button
-                            el('button', {
-                                className: 'button button-primary',
-                                onClick: function() {
-                                    var newBindings = [...(attributes.contextBindings || [])];
-                                    newBindings.push({
-                                        variableName: 'content',
-                                        source: '',
-                                        arguments: '',
-                                        preview_value: '',
-                                        bindingKey: 'contextBinding' + newBindings.length
-                                    });
-                                    setAttributes({ contextBindings: newBindings });
+                        // Render existing context bindings
+                        (attributes.contextBindings || []).map(function(binding, index) {
+                            return el('div', {
+                                key: index,
+                                style: {
+                                    border: '1px solid #ddd',
+                                    padding: '10px',
+                                    marginBottom: '10px',
+                                    borderRadius: '4px'
                                 }
-                            }, 'Add new context binding')
-                        ])
-                    ),
-                    el(PanelBody, { title: 'Template Settings' },
-                        el(TextareaControl, {
-                            label: 'Twig Template',
-                            help: 'Use {{ variableName }} to access context binding variables. To include patterns use {{ include_pattern(\'pattern-slug\') }}. To include template parts, use {{ include_template_part(\'part-slug\') }} (available parts are listed above). For editor styling (font size etc.), include class="{{ editor_classes }}" in your template elements.',
-                            value: attributes.twigTemplate,
-                            onChange: function(value) {
-                                setAttributes({ twigTemplate: value });
-                            },
-                            rows: 10
-                        })
-                    ),
-                    el(PanelBody, { title: 'Preview Settings' },
-                        el(ComboboxControl, {
-                            label: 'Preview Mode',
-                            help: 'Choose how to render the preview in the editor.',
-                            value: attributes.previewMode || 'default',
-                            options: [
-                                { value: 'default', label: 'Default (Binding Labels)' },
-                                { value: 'server-side', label: 'Server-Side Rendered' },
-                              { value: 'twigjs', label: 'TwigJS Rendered (Beta)' }
-                            ],
-                            onChange: function(value) {
-                                setAttributes({ previewMode: value });
-                            }
+                            }, [
+                                el(TextControl, {
+                                  label: 'Variable Name',
+                                    value: binding.variableName || 'content',
+                                    onChange: function(value) {
+                                        var newBindings = [...(attributes.contextBindings || [])];
+                                        newBindings[index] = { ...newBindings[index], variableName: value };
+                                        setAttributes({ contextBindings: newBindings });
+                                    }
+                                }),
+
+                                el(ComboboxControl, {
+                                  label: 'Binding Source',
+                                    value: binding.source || '',
+                                    options: bindingSources,
+                                    maxSuggestions: 10,
+                                    onChange: function(value) {
+                                        var newBindings = [...(attributes.contextBindings || [])];
+                                        var bindingKey = 'contextBinding' + index;
+                                        newBindings[index] = { ...newBindings[index], source: value, bindingKey: bindingKey };
+                                        setAttributes({ contextBindings: newBindings });
+
+                                        // Update metadata bindings
+                                        var newMetadata = JSON.parse(JSON.stringify(attributes.metadata || {}));
+                                        newMetadata.bindings = newMetadata.bindings || {};
+                                        newMetadata.bindings[bindingKey] = { source: value };
+                                        setAttributes({ metadata: newMetadata });
+                                    }
+                                }),
+
+                                el(TextareaControl, {
+                                  label: 'Binding Arguments (Optional)',
+                                    help: 'JSON object with arguments for the binding source, e.g. {"key": "my_meta"} that gets passed to binding value callback.',
+                                    value: binding.arguments || '',
+                                    onChange: function(value) {
+                                        var newBindings = [...(attributes.contextBindings || [])];
+                                        var bindingKey = 'contextBinding' + index;
+                                        newBindings[index] = { ...newBindings[index], arguments: value, bindingKey: bindingKey };
+                                        setAttributes({ contextBindings: newBindings });
+
+                                        // Update metadata bindings
+                                        var newMetadata = JSON.parse(JSON.stringify(attributes.metadata || {}));
+                                        newMetadata.bindings = newMetadata.bindings || {};
+                                        newMetadata.bindings[bindingKey] = newMetadata.bindings[bindingKey] || {};
+                                        if (value) {
+                                            try {
+                                                var parsedArgs = JSON.parse(value);
+                                                newMetadata.bindings[bindingKey].args = parsedArgs;
+                                            } catch (e) {
+                                                // If JSON is invalid, don't update args
+                                                console.warn('Invalid JSON in binding arguments:', e);
+                                            }
+                                        } else {
+                                            delete newMetadata.bindings[bindingKey].args;
+                                        }
+                                        setAttributes({ metadata: newMetadata });
+                                    },
+                                    rows: 3
+                                }),
+
+                                el(TextControl, {
+                                  label: 'Preview Value (Optional)',
+                                    help: 'Default value to show in editor preview rendered with TwigJS. It is experimental and needs to be set it in Preview Settings below to be effective.',
+                                    value: binding.preview_value || '',
+                                    onChange: function(value) {
+                                        var newBindings = [...(attributes.contextBindings || [])];
+                                        newBindings[index] = { ...newBindings[index], preview_value: value };
+                                        setAttributes({ contextBindings: newBindings });
+                                    }
+                                }),
+
+                                el('button', {
+                                    className: 'button button-secondary',
+                                    style: { marginTop: '10px' },
+                                    onClick: function() {
+                                        var newBindings = [...(attributes.contextBindings || [])];
+                                        var bindingKey = 'contextBinding' + index;
+                                        newBindings.splice(index, 1);
+                                        setAttributes({ contextBindings: newBindings });
+
+                                        // Remove from metadata bindings
+                                        var newMetadata = JSON.parse(JSON.stringify(attributes.metadata || {}));
+                                        if (newMetadata.bindings && newMetadata.bindings[bindingKey]) {
+                                            delete newMetadata.bindings[bindingKey];
+                                        }
+                                        setAttributes({ metadata: newMetadata });
+                                    }
+                                }, 'Remove')
+                            ]);
                         }),
 
-                        // Preview Context (only for wp_template)
-                        isTemplate ? el(TextControl, {
-                            label: 'Template Preview Post ID',
-                            help: 'Enter a Post ID to preview template with actual data with server-side rendered preview. This is required as template preview does not have a specific Post ID. Set Preview Mode above to Server-Side Rendered to see the effect.',
-                            value: attributes.previewPostId || '',
-                            onChange: function(value) {
-                                setAttributes({ previewPostId: value });
+                        // Add new binding button
+                        el('button', {
+                            className: 'button button-primary',
+                            onClick: function() {
+                                var newBindings = [...(attributes.contextBindings || [])];
+                                newBindings.push({
+                                    variableName: 'content',
+                                    source: '',
+                                    arguments: '',
+                                    preview_value: '',
+                                    bindingKey: 'contextBinding' + newBindings.length
+                                });
+                                setAttributes({ contextBindings: newBindings });
                             }
-                        }) : null
-                    ),
-                    templatePartsSection
+                        }, 'Add new context binding')
+                    ])
                 ),
+                el(PanelBody, { title: 'Template Settings' },
+                    el(TextareaControl, {
+                        label: 'Twig Template',
+                        help: 'Use {{ variableName }} to access context binding variables. To include patterns use {{ include_pattern(\'pattern-slug\') }}. To include template parts, use {{ include_template_part(\'part-slug\') }} (available parts are listed above). For editor styling (font size etc.), include class="{{ editor_classes }}" in your template elements.',
+                        value: attributes.twigTemplate,
+                        onChange: function(value) {
+                            setAttributes({ twigTemplate: value });
+                        },
+                        rows: 10
+                    })
+                ),
+                el(PanelBody, { title: 'Preview Settings' },
+                    el(ComboboxControl, {
+                        label: 'Preview Mode',
+                        help: 'Choose how to render the preview in the editor.',
+                        value: attributes.previewMode || 'default',
+                        options: [
+                            { value: 'default', label: 'Default (Binding Labels)' },
+                            { value: 'server-side', label: 'Server-Side Rendered' },
+                          { value: 'twigjs', label: 'TwigJS Rendered (Beta)' }
+                        ],
+                        onChange: function(value) {
+                            setAttributes({ previewMode: value });
+                        }
+                    }),
 
-                // Render preview based on selected mode
+                    // Preview Context (only for wp_template)
+                    isTemplate ? el(TextControl, {
+                        label: 'Template Preview Post ID',
+                        help: 'Enter a Post ID to preview template with actual data with server-side rendered preview. This is required as template preview does not have a specific Post ID. Set Preview Mode above to Server-Side Rendered to see the effect.',
+                        value: attributes.previewPostId || '',
+                        onChange: function(value) {
+                            setAttributes({ previewPostId: value });
+                        }
+                    }) : null
+                ),
+                templatePartsSection
+            );
+
+            if (isEditingTemplate) {
+                return el('div', blockProps, [
+                    toolbarControls,
+                    el(TextareaControl, {
+                        value: attributes.twigTemplate,
+                        onChange: (value) => setAttributes({ twigTemplate: value }),
+                        style: { 
+                            fontFamily: 'monospace, monospace',
+                            minHeight: '300px'
+                        },
+                        rows: 10
+                    }),
+                    el('div', { style: { marginTop: '20px' } }, getPreviewContent()),
+                    inspector
+                ]);
+            }
+
+            return el('div', blockProps, [
+                toolbarControls,
+                inspector,
                 getPreviewContent()
             ]);
         },
