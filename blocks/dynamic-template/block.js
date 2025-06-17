@@ -195,15 +195,15 @@
                           ),
                           el('ul', { style: { paddingLeft: '1.5rem', listStyleType: 'disc' } },
                               templateParts.map(function(part) {
-                                  return el('li', { 
-                                      key: part.id, 
+                                  return el('li', {
+                                      key: part.id,
                                       onClick: function() {
                                           var includeCode = `{{ include_template_part('${part.slug}') }}\n`;
                                           setAttributes({
                                               twigTemplate: attributes.twigTemplate + includeCode
                                           });
                                       },
-                                      style: { 
+                                      style: {
                                           color: '#1e35b9',
                                           textDecoration: 'underline',
                                           cursor: 'pointer'
@@ -239,14 +239,14 @@
                                     style: {
                                         color: '#1e35b9',
                                         textDecoration: 'underline',
-                                        cursor: 'pointer' 
+                                        cursor: 'pointer'
                                     }
                                 }, pattern.name + (pattern.title && pattern.title !== pattern.name ? ' (' + pattern.title + ')' : ''));
                             })
                         )
                 ]),
-                el('p', { 
-                    style: { 
+                el('p', {
+                    style: {
                         marginTop: '20px',
                         fontSize: '0.8em',
                         color: '#666',
@@ -430,17 +430,25 @@
             );
 
             if (isEditingTemplate) {
+                // Calculate size based on line count (minimum 10, maximum 30)
+                const lineCount = attributes.twigTemplate.split('\n').length;
+                const rows = Math.min(30, Math.max(10, lineCount + 2)); // Add 2 extra lines for padding
+                const lineHeight = 20; // Approximate line height in pixels
+
                 return el('div', blockProps, [
-                    toolbarControls,
                     el(TextareaControl, {
                         value: attributes.twigTemplate,
                         onChange: (value) => setAttributes({ twigTemplate: value }),
-                        style: { 
+                        style: {
                             fontFamily: 'monospace, monospace',
-                            minHeight: '300px'
+                            minHeight: '100px',
+                            height: `${rows * lineHeight}px`,
+                            zIndex: 100,
+                            position: 'relative'
                         },
-                        rows: 10
+                        rows
                     }),
+                    toolbarControls,
                     el('div', { style: { marginTop: '20px' } }, getPreviewContent()),
                     inspector
                 ]);
