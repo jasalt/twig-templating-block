@@ -64,21 +64,43 @@ function register_dynamic_template_block() {
 
 	// Add the Twig function globally to Timber
 	add_filter( 'timber/twig', function( $twig ) {
-		$twig->addFunction( new \Twig\TwigFunction('include_pattern', function ($slug) {
+		$twig->addFunction( new \Twig\TwigFunction('include_pattern', function ($slug, $postID = null) {
 			if (!$slug || !is_string($slug)) return '';
 
+			// TODO should take into account block theme pattern file rendering
 			$patterns = get_posts([
 				'post_type' => 'wp_block',
 				'name' => $slug,
 				'posts_per_page' => 1,
 				'post_status' => 'publish'
 			]);
-			
+
 			if (empty($patterns)) return '';
-			
-			return do_blocks($patterns[0]->post_content);
+
+			global $post;
+			$original_post = $post;
+
+			// Temporarily switch global post if postID is provided
+			if ($postID) {
+				$temp_post = get_post($postID);
+				if ($temp_post) {
+					$post = $temp_post;
+					setup_postdata($post);
+				}
+			}
+
+			$content = do_blocks($patterns[0]->post_content);
+
+			// Restore original post
+			if ($postID) {
+				$post = $original_post;
+				setup_postdata($post);
+			}
+
+			return $content;
 		}));
-		$twig->addFunction( new \Twig\TwigFunction('include_template_part', function ($template_part_id) {
+
+		$twig->addFunction( new \Twig\TwigFunction('include_template_part', function ($template_part_id, $postID = null) {
 			// If the user passes the template part slug without theme, then we use current theme's slug
 			$full_id = $template_part_id;
 			// Check if the ID has the double-slash separator
@@ -89,11 +111,31 @@ function register_dynamic_template_block() {
 
 			$template_part = get_block_template($full_id, 'wp_template_part');
 
-			if ($template_part && !empty($template_part->content)) {
-				return do_blocks($template_part->content);
+			if (!$template_part || empty($template_part->content)) {
+				return '';
 			}
 
-			return '';
+			global $post;
+			$original_post = $post;
+			
+			// Temporarily switch global post if postID is provided
+			if ($postID) {
+				$temp_post = get_post($postID);
+				if ($temp_post) {
+					$post = $temp_post;
+					setup_postdata($post);
+				}
+			}
+
+			$content = do_blocks($template_part->content);
+
+			// Restore original post
+			if ($postID) {
+				$post = $original_post;
+				setup_postdata($post);
+			}
+
+			return $content;
 		}));
 		return $twig;
 	});
