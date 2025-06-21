@@ -103,7 +103,7 @@
 
                 var bindingText = sourceLabels.length === 0 ? 'No bindings' : sourceLabels.join(', ');
 
-                return el('div', {}, '{{ ' + bindingText + ' }}');
+                return el('div', {}, '[ ' + bindingText + ' ]');
             };
 
             // Function to render TwigJS preview
@@ -151,7 +151,7 @@
                                         argsSuffix = ': [Invalid JSON]';
                                     }
                                 }
-                              context[binding.variableName] = '{{ ' + sourceLabel + argsSuffix + ' }}';
+                              context[binding.variableName] = '[ ' + sourceLabel + argsSuffix + ' ]';
                             }
                         }
                     });
