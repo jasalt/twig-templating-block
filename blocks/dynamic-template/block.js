@@ -167,6 +167,16 @@
                 }
             };
 
+            // Function to render code preview
+            var renderCodePreview = function() {
+                return el('pre', {
+                    style: {
+                        whiteSpace: 'pre-wrap',
+                        fontFamily: 'monospace'
+                    }
+                }, attributes.twigTemplate || '');
+            };
+
             // Function to get preview content based on mode
             var getPreviewContent = function() {
                 var previewMode = attributes.previewMode || 'default';
@@ -179,6 +189,8 @@
                         });
                     case 'twigjs':
                         return renderTwigJSPreview();
+                    case 'code':
+                        return renderCodePreview();
                     default:
                         return renderDefaultPreview();
                 }
@@ -409,7 +421,8 @@
                         options: [
                             { value: 'default', label: 'Default (Binding Labels)' },
                             { value: 'server-side', label: 'Server-Side Rendered' },
-                          { value: 'twigjs', label: 'TwigJS Rendered (Beta)' }
+                            { value: 'twigjs', label: 'TwigJS Rendered (Beta)' },
+                            { value: 'code', label: 'Show as Code' }
                         ],
                         onChange: function(value) {
                             setAttributes({ previewMode: value });
