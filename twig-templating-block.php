@@ -1,25 +1,25 @@
 <?php
 
 /*
- * Plugin Name: Timber Templating Block
- * Description: Use Timber in Site Editor to fill some gaps.
+ * Plugin Name: Twig Templating Block
+ * Description: Write Twig templates in Site Editor with Block Bindings support to fill the gap. Powered by Timber.
  * Version: 0.1.0
  * Author: Jarkko Saltiola
  * Author URI: https://jasalt.dev
  */
 
 // Check if Twig is available, if not load from vendor
+// TODO check for Timber
 if (!class_exists('\Twig\Environment')) {
     if (file_exists(plugin_dir_path(__FILE__) . 'vendor/autoload.php')) {
         require_once(plugin_dir_path(__FILE__) . 'vendor/autoload.php');
     } else {
         add_action('admin_notices', function() {
-            echo '<div class="notice notice-error"><p>Timber Templating Block: Twig library not found. Please run "composer install" in the plugin directory.</p></div>';
+            echo '<div class="notice notice-error"><p>Twig Templating Block: Twig library not found. Please run "composer install" in the plugin directory.</p></div>';
         });
         return;
     }
 }
-
 
 use Timber\Timber;
 
@@ -34,15 +34,15 @@ function register_timber_templating_block() {
 	);
 
 	wp_register_script(
-		'timber-templating-block-editor',
-		plugins_url('timber-templating-block.js', __FILE__),
+		'twig-templating-block-editor',
+		plugins_url('twig-templating-block.js', __FILE__),
 		['wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'twigjs-library'],
-		filemtime(plugin_dir_path(__FILE__) . 'timber-templating-block.js')
+		filemtime(plugin_dir_path(__FILE__) . 'twig-templating-block.js')
 	);
 
 
-	register_block_type('jasalt/timber-templating-block', [
-		'editor_script' => 'timber-templating-block-editor',
+	register_block_type('jasalt/twig-templating-block', [
+		'editor_script' => 'twig-templating-block-editor',
 		'render_callback' => 'render_timber_templating_block',
 		'attributes' => [
 			'twigTemplate' => [
