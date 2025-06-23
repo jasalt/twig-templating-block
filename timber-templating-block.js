@@ -14,8 +14,8 @@
     var ToolbarButton = components.ToolbarButton;
 
 
-    blocks.registerBlockType('universal-blocks/dynamic-template', {
-        title: 'Dynamic Template',
+    blocks.registerBlockType('jasalt/timber-templating-block', {
+        title: 'Timber Templating Block',
         icon: 'embed-generic',
         category: 'text',
         apiVersion: 2,
@@ -184,7 +184,7 @@
                 switch (previewMode) {
                     case 'server-side':
                         return el(ServerSideRender, {
-                            block: 'universal-blocks/dynamic-template',
+                            block: 'jasalt/timber-templating-block',
                             attributes: attributes
                         });
                     case 'twigjs':
