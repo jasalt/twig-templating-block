@@ -71,7 +71,6 @@ function register_twig_templating_block() {
 		'supports' => [
 			'align' => true,
 			'html' => false,
-			//'innerBlocks' => true,
 			'typography' => [
 				'fontSize' => true
 			]
@@ -203,7 +202,6 @@ function render_twig_templating_block($attributes, $content, $block) {
 
 	$context['attributes'] = [];
 	$context['editor_classes'] = $editor_classes;
-	// $context['inner_blocks'] = do_blocks($content);
 
 	if (isset($block->parsed_block['attrs']['metadata']['bindings'])) {
 		$bindings = $block->parsed_block['attrs']['metadata']['bindings'];
