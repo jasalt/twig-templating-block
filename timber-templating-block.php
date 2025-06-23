@@ -1,11 +1,11 @@
 <?php
 
 /*
-   Plugin Name: Yleis Plugin
-   Description: Custom code for different projects.
-   Version: 1.0
-   Author: Jarkko Saltiola / Netura
-   Author URI: https://netura.fi
+ * Plugin Name: Timber Templating Block
+ * Description: Use Timber in Site Editor to fill some gaps.
+ * Version: 0.1.0
+ * Author: Jarkko Saltiola
+ * Author URI: https://jasalt.dev
  */
 
 // Check if Twig is available, if not load from vendor
