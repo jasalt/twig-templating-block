@@ -24,7 +24,7 @@ if (!class_exists('\Twig\Environment')) {
 use Timber\Timber;
 
 // Register the block
-function register_timber_templating_block() {
+function register_twig_templating_block() {
 	// Register Twig.js script from local static directory
 	wp_register_script(
 		'twigjs-library',
@@ -43,7 +43,7 @@ function register_timber_templating_block() {
 
 	register_block_type('jasalt/twig-templating-block', [
 		'editor_script' => 'twig-templating-block-editor',
-		'render_callback' => 'render_timber_templating_block',
+		'render_callback' => 'render_twig_templating_block',
 		'attributes' => [
 			'twigTemplate' => [
 				'type' => 'string',
@@ -157,10 +157,10 @@ function register_timber_templating_block() {
 		return $twig;
 	});
 }
-add_action('init', 'register_timber_templating_block');
+add_action('init', 'register_twig_templating_block');
 
 // Server-side rendering with Timber / Twig
-function render_timber_templating_block($attributes, $content, $block) {
+function render_twig_templating_block($attributes, $content, $block) {
 	$template_content = $attributes['twigTemplate'] ?? '<div class="{{ editor_classes }}">
 <div>{{ content }}</div>
 </div>';

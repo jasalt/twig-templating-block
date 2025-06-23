@@ -14,8 +14,8 @@
     var ToolbarButton = components.ToolbarButton;
 
 
-    blocks.registerBlockType('jasalt/timber-templating-block', {
-        title: 'Timber Templating Block',
+    blocks.registerBlockType('jasalt/twig-templating-block', {
+        title: 'Twig Templating Block',
         icon: 'embed-generic',
         category: 'text',
         apiVersion: 2,
@@ -184,7 +184,7 @@
                 switch (previewMode) {
                     case 'server-side':
                         return el(ServerSideRender, {
-                            block: 'jasalt/timber-templating-block',
+                            block: 'jasalt/twig-templating-block',
                             attributes: attributes
                         });
                     case 'twigjs':
