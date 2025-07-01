@@ -144,7 +144,8 @@ function register_twig_templating_block() {
 				}
 			}
 
-			$content = do_blocks($template_part->content);
+			$content = do_blocks($template_part->content);  // TODO does not use global block id ... in inner timber context the post is global post, not the template part post?
+			                       // TwigContextBug250625_102331.png
 
 			// Restore original post
 			if ($postID) {
