@@ -78,8 +78,39 @@ function register_twig_templating_block() {
 		'uses_context' => ['postId', 'postType']
 	]);
 
-	// Add the Twig function globally to Timber
+	// Add block editor specific Twig functions globally to Timber
 	add_filter( 'timber/twig', function( $twig ) {
+		// Call block binding (alternatively) from Twig function, useful e.g.
+		// inside Twig foreach loop to access item block binding values.
+		$twig->addFunction( new \Twig\TwigFunction('call_block_binding', function ($source, $args = []) {
+			if (!class_exists('WP_Block_Bindings_Registry')) {
+				return '';
+			}
+
+			$registry = WP_Block_Bindings_Registry::get_instance();
+			$source_obj = $registry->get_registered($source);
+			if (!$source_obj) {
+				return '';
+			}
+
+			// Create a dummy block to use for context
+			$dummy_block = (object)[
+				'attributes' => [],
+				'parsed_block' => [
+					'attrs' => [
+						'metadata' => [
+							'bindings' => []
+						]
+					]
+				]
+			];
+
+			$block_binding_key = 'twig_binding_' . uniqid();  // HACK
+			$value = $source_obj->get_value($args, $dummy_block, $block_binding_key);
+
+			return $value;
+		}));
+
 		$twig->addFunction( new \Twig\TwigFunction('include_pattern', function ($slug, $postID = null) {
 			if (!$slug || !is_string($slug)) return '';
 
@@ -143,7 +174,8 @@ function register_twig_templating_block() {
 				}
 			}
 
-			$content = do_blocks($template_part->content);
+			$content = do_blocks($template_part->content);  // TODO does not use global block id ... in inner timber context the post is global post, not the template part post?
+			                       // TwigContextBug250625_102331.png
 
 			// Restore original post
 			if ($postID) {
