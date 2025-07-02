@@ -82,7 +82,20 @@ function register_twig_templating_block() {
 	add_filter( 'timber/twig', function( $twig ) {
 		// Call block binding (alternatively) from Twig function, useful e.g.
 		// inside Twig foreach loop to access item block binding values.
-		$twig->addFunction( new \Twig\TwigFunction('call_block_binding', function ($source, $args = []) {
+		$twig->addFunction( new \Twig\TwigFunction('call_block_binding', function ($source, $args = [], $global_context_overrides = []) {
+
+			// Normally block binding callback accesses global state defined via `uses_context` in `register_block_type` and it works as
+			// expected within templates and Query Loop block, or when calling template parts / patterns for rendering.
+
+			// When looping in Twig, to have block binding calls work as expected, the global state change needs to be overridden during
+			// block binding call.
+
+			// $global_context_overrides is associative array and allows overriding global state.
+			// While it's expected to support `uses_context` values as keys, currently only postID support is implemented.
+
+			// Usage example:
+			// {% set status = call_block_binding('my-plugin/my-binding', [], {'postID': post.id}) %}
+
 			if (!class_exists('WP_Block_Bindings_Registry')) {
 				return '';
 			}
@@ -106,7 +119,26 @@ function register_twig_templating_block() {
 			];
 
 			$block_binding_key = 'twig_binding_' . uniqid();  // HACK
+
+			global $post;
+			$original_post = $post;
+
+			// Override global post if postID is provided in context overrides
+			if (!empty($global_context_overrides['postID'])) {
+				$temp_post = get_post($global_context_overrides['postID']);
+				if ($temp_post) {
+					$post = $temp_post;
+					setup_postdata($post);
+				}
+			}
+
 			$value = $source_obj->get_value($args, $dummy_block, $block_binding_key);
+
+			// Restore original post if it was overridden
+			if (!empty($global_context_overrides['postID'])) {
+				$post = $original_post;
+				setup_postdata($post);
+			}
 
 			return $value;
 		}));
