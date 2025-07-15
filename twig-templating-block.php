@@ -294,12 +294,7 @@ function render_twig_templating_block($attributes, $content, $block) {
 
 						if ($source) {
 							$value = $source->get_value($binding_arguments, $block, $binding_key);
-
-							if (is_array($value) || is_object($value)) {
-								$binding_value = $value;
-							} elseif (is_string($value)) {
-								$binding_value = $value;
-							}
+							$binding_value = $value;
 						}
 					}
 
