@@ -1,5 +1,5 @@
 # Installation
-Clone repo in `wp-content/plugins/` and install dependencies with `composer install`. Activate plugin and add
+Clone repo in `wp-content/plugins/` and install dependencies with `composer install`. Activate plugin and add Twig Templating block to a Block Template.
 
 # Block bindings
 
