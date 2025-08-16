@@ -86,6 +86,31 @@ By default, the block preview renders only list of context variable names that h
 
 There's a concept different preview modes, including server-side rendered preview with overridden global PostID. Some experimentation also has been done with TwigJS which might be discarded.
 
+## Extending Twig
+
+Following https://timber.github.io/docs/v2/guides/extending-twig/ custom filters can be registered to Twig environment, as example a filter `{{ 125 | format_minutes }}` that converts duration in minutes to more human friendly representation `2 h 5 min`:
+
+```
+add_filter('timber/twig', function ($twig) {
+    $twig->addFilter(new \Twig\TwigFilter('format_minutes', function($minutes) {
+        $hours = floor($minutes / 60);
+        $mins = $minutes % 60;
+
+        $result = '';
+        if ($hours > 0) {
+            $result .= $hours . ' h ';
+        }
+        if ($mins > 0) {
+            $result .= $mins . ' min';
+        }
+
+        return trim($result);
+    }));
+
+    return $twig;
+});
+```
+
 # Known issues
 
 ## Composer compatibility issues with WordPress
@@ -97,7 +122,7 @@ When editing Twig template, the editor text area slows down sometimes considerab
 
 Block editor's undo action (Ctrl-z) does not work logically with text area input contents, often leading to more changes getting reverted than what is expected.
 
-## Adding Twig functions / filters in site code (TODO)
+## Adding Twig functions in site code (TODO)
 
 Following from https://timber.github.io/docs/v2/guides/extending-twig/ in site code fails to register the function:
 ```
