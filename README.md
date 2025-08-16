@@ -90,3 +90,9 @@ There's a concept different preview modes, including server-side rendered previe
 
 ## Composer compatibility issues with WordPress
 Composer autoloader without classname scoping does not play well if same dependencies are used from many places, example discussion https://github.com/timber/timber/discussions/2815. Works fine as the only Timber/Twig related dependency on a site but might require some work otherwise. Known to work with Timber/Twig used in custom blocks e.g. https://github.com/jasalt/wp-block-experiments.
+
+## Block editor performance & quirks
+
+When editing Twig template, the editor text area slows down sometimes considerably and it's better to copy-paste the template to text editor for changes. Would require some optimization on JS side.
+
+Block editor's undo action (Ctrl-z) does not work logically with text area input contents, often leading to more changes getting reverted than what is expected.
