@@ -96,3 +96,15 @@ Composer autoloader without classname scoping does not play well if same depende
 When editing Twig template, the editor text area slows down sometimes considerably and it's better to copy-paste the template to text editor for changes. Would require some optimization on JS side.
 
 Block editor's undo action (Ctrl-z) does not work logically with text area input contents, often leading to more changes getting reverted than what is expected.
+
+## Adding Twig functions / filters in site code (TODO)
+
+Following from https://timber.github.io/docs/v2/guides/extending-twig/ in site code fails to register the function:
+```
+add_filter('timber/twig/functions', function ($functions) {
+    $functions['get_permalink'] = [
+        'callable' => 'get_permalink',
+    ];
+    return $functions;
+});
+```
