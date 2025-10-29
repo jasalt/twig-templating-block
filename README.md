@@ -1,5 +1,5 @@
 # Installation
-Clone repo in `wp-content/plugins/` and install dependencies with `composer install`. Activate plugin and add
+Clone repo in `wp-content/plugins/` and install dependencies with `composer install`. Activate plugin and add Twig Templating block to a Block Template.
 
 # Block bindings
 
@@ -39,8 +39,6 @@ When new bindings are registered, the Site Editor needs to be reloaded. Afterwar
 ![Screenshot of editor block bindings selector](docs/editor_bindings_selector.png "Screenshot of editor block bindings selector")
 
 # Twig templating
-
-After mapping data to Twi
 
 ## Full Site Editor / Block Theme compatibility
 Generally, the Twig Templating Block works can be used inside both Template Parts and Block Patterns, and render them in place for maximum compatibility with Full Site Editor and Block Theme facilities.
@@ -86,7 +84,50 @@ By default, the block preview renders only list of context variable names that h
 
 There's a concept different preview modes, including server-side rendered preview with overridden global PostID. Some experimentation also has been done with TwigJS which might be discarded.
 
+## Extending Twig
+
+Following https://timber.github.io/docs/v2/guides/extending-twig/ custom filters can be registered to Twig environment, as example a filter `{{ 125 | format_minutes }}` that converts duration in minutes to more human friendly representation `2 h 5 min`:
+
+```
+add_filter('timber/twig', function ($twig) {
+    $twig->addFilter(new \Twig\TwigFilter('format_minutes', function($minutes) {
+        $hours = floor($minutes / 60);
+        $mins = $minutes % 60;
+
+        $result = '';
+        if ($hours > 0) {
+            $result .= $hours . ' h ';
+        }
+        if ($mins > 0) {
+            $result .= $mins . ' min';
+        }
+
+        return trim($result);
+    }));
+
+    return $twig;
+});
+```
+
 # Known issues
 
 ## Composer compatibility issues with WordPress
 Composer autoloader without classname scoping does not play well if same dependencies are used from many places, example discussion https://github.com/timber/timber/discussions/2815. Works fine as the only Timber/Twig related dependency on a site but might require some work otherwise. Known to work with Timber/Twig used in custom blocks e.g. https://github.com/jasalt/wp-block-experiments.
+
+## Block editor performance & quirks
+
+When editing Twig template, the editor text area slows down sometimes considerably and it's better to copy-paste the template to text editor for changes. Would require some optimization on JS side.
+
+Block editor's undo action (Ctrl-z) does not work logically with text area input contents, often leading to more changes getting reverted than what is expected.
+
+## Adding Twig functions in site code (TODO)
+
+Following from https://timber.github.io/docs/v2/guides/extending-twig/ in site code fails to register the function:
+```
+add_filter('timber/twig/functions', function ($functions) {
+    $functions['get_permalink'] = [
+        'callable' => 'get_permalink',
+    ];
+    return $functions;
+});
+```
