@@ -302,7 +302,7 @@ function render_twig_templating_block($attributes, $content, $block) {
 					$var_name_raw = trim($binding['variableName']);
 					$is_destructuring = false;
 					$destructured_vars = [];
-					if (preg_match('/^\{\s*(.+)\s*\}$/', $var_name_raw, $m)) {
+					if (preg_match('/^\{\s*(.+)\s*\}$/s', $var_name_raw, $m)) {
 						$is_destructuring = true;
 						$parts = array_map('trim', explode(',', $m[1]));
 						$destructured_vars = array_values(array_filter($parts, function($v){ return $v !== ''; }));

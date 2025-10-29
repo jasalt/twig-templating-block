@@ -332,14 +332,17 @@
                                     borderRadius: '4px'
                                 }
                             }, [
-                                el(TextControl, {
+                                el(TextareaControl, {
                                   label: 'Variable Name',
+                                  help: 'Supports destructuring, e.g. { var1, var3 }. You can write across multiple lines.',
                                     value: binding.variableName || 'content',
                                     onChange: function(value) {
                                         var newBindings = [...(attributes.contextBindings || [])];
                                         newBindings[index] = { ...newBindings[index], variableName: value };
                                         setAttributes({ contextBindings: newBindings });
-                                    }
+                                    },
+                                    rows: 2,
+                                    style: { resize: 'vertical', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }
                                 }),
 
                                 el(ComboboxControl, {
