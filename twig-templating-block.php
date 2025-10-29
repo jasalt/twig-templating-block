@@ -51,6 +51,14 @@ function register_twig_templating_block() {
 <div>{{ content }}</div>
 </div>'
 			],
+			'useExternalTemplate' => [
+				'type' => 'boolean',
+				'default' => false
+			],
+			'templateName' => [
+				'type' => 'string',
+				'default' => ''
+			],
 			'metadata' => [
 				'type' => 'object',
 				'default' => (object) []
@@ -345,7 +353,29 @@ function render_twig_templating_block($attributes, $content, $block) {
 
 	$rendered_content = '';
 	try {
-		$rendered_content = Timber::compile_string($template_content, $context);
+		$use_external = !empty($attributes['useExternalTemplate']);
+		$template_name = isset($attributes['templateName']) ? trim($attributes['templateName']) : '';
+
+		if ($use_external && $template_name !== '') {
+			$theme_dir = get_stylesheet_directory();
+			$template_path = trailingslashit($theme_dir) . 'partials/' . ltrim($template_name, '/');
+
+			if (file_exists($template_path)) {
+				$rendered_content = Timber::compile($template_path, $context);
+			} else {
+				if (current_user_can('manage_options')) {
+					$rendered_content = '<div class="error" style="border:2px dashed red; padding: 20px;">'
+						. esc_html__('Template file not found:', 'jasalt') . ' ' . esc_html($template_path)
+						. '</div>';
+				} else {
+					$rendered_content = '<div class="error">'
+						. esc_html__('Block rendering error. Please contact administrator.', 'jasalt')
+						. '</div>';
+				}
+			}
+		} else {
+			$rendered_content = Timber::compile_string($template_content, $context);
+		}
 	} catch (\Exception $e) {
 		error_log('Error rendering Timber Templating Block: ' . $e->getMessage());
 		if (current_user_can('manage_options')) {

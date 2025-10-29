@@ -108,6 +108,9 @@
 
             // Function to render TwigJS preview
             var renderTwigJSPreview = function() {
+              if (attributes.useExternalTemplate) {
+                  return el('div', { className: 'template-info' }, 'TwigJS preview is not available for template files. Switch preview mode to Server-Side Rendered.');
+              }
               var template = attributes.twigTemplate || '<div class="{{ editor_classes }}"><div>{{ content }}</div></div>';
                 var contextBindings = attributes.contextBindings || [];
 
@@ -443,7 +446,22 @@
                     ])
                 ),
                 el(PanelBody, { title: 'Template Settings' },
-                    el(TextareaControl, {
+                    el(ToggleControl, {
+                        label: 'Use Template File',
+                        help: 'If enabled, render from a theme file under partials/ instead of inline Twig.',
+                        checked: !!attributes.useExternalTemplate,
+                        onChange: function(value) {
+                            setAttributes({ useExternalTemplate: value });
+                        }
+                    }),
+                    attributes.useExternalTemplate ? el(TextControl, {
+                        label: 'Template File Name',
+                        help: 'Example: mypartial.twig. Resolved from your active theme at partials/mypartial.twig.',
+                        value: attributes.templateName || '',
+                        onChange: function(value) {
+                            setAttributes({ templateName: value });
+                        }
+                    }) : el(TextareaControl, {
                         label: 'Twig Template',
                         help: 'Use {{ variableName }} to access context binding variables. To include patterns use {{ include_pattern(\'pattern-slug\') }}. To include template parts, use {{ include_template_part(\'part-slug\') }} (available parts are listed above). For editor styling (font size etc.), include class="{{ editor_classes }}" in your template elements.',
                         value: attributes.twigTemplate,
@@ -484,12 +502,17 @@
 
             if (isEditingTemplate) {
                 // Calculate size based on line count (minimum 10, maximum 30)
-                const lineCount = attributes.twigTemplate.split('\n').length;
+                const lineCount = (attributes.twigTemplate || '').split('\n').length;
                 const rows = Math.min(30, Math.max(10, lineCount + 2)); // Add 2 extra lines for padding
                 const lineHeight = 20; // Approximate line height in pixels
 
                 return el('div', blockProps, [
-                    el(TextareaControl, {
+                    attributes.useExternalTemplate ? el(TextControl, {
+                        label: 'Template File Name',
+                        help: 'Example: mypartial.twig. Resolved from your active theme at partials/mypartial.twig.',
+                        value: attributes.templateName || '',
+                        onChange: (value) => setAttributes({ templateName: value })
+                    }) : el(TextareaControl, {
                         value: attributes.twigTemplate,
                         onChange: (value) => setAttributes({ twigTemplate: value }),
                         style: {
