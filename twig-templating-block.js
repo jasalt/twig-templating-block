@@ -230,7 +230,12 @@
                     case 'twigjs':
                         return renderTwigJSPreview();
                     case 'code':
-                        return renderCodePreview();
+                        return attributes.useExternalTemplate
+                            ? el(ServerSideRender, {
+                                block: 'jasalt/twig-templating-block',
+                                attributes: attributes
+                              })
+                            : renderCodePreview();
                     default:
                         return renderDefaultPreview();
                 }

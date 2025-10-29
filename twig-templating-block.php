@@ -355,22 +355,40 @@ function render_twig_templating_block($attributes, $content, $block) {
 	try {
 		$use_external = !empty($attributes['useExternalTemplate']);
 		$template_name = isset($attributes['templateName']) ? trim($attributes['templateName']) : '';
+		$is_code_preview = (defined('REST_REQUEST') && REST_REQUEST && isset($attributes['previewMode']) && $attributes['previewMode'] === 'code');
 
 		if ($use_external && $template_name !== '') {
 			$theme_dir = get_stylesheet_directory();
 			$template_path = trailingslashit($theme_dir) . 'partials/' . ltrim($template_name, '/');
 
-			if (file_exists($template_path)) {
-				$rendered_content = Timber::compile($template_path, $context);
-			} else {
-				if (current_user_can('manage_options')) {
-					$rendered_content = '<div class="error" style="border:2px dashed red; padding: 20px;">'
-						. esc_html__('Template file not found:', 'jasalt') . ' ' . esc_html($template_path)
-						. '</div>';
+			if ($is_code_preview) {
+				if (file_exists($template_path)) {
+					$file_contents = file_get_contents($template_path);
+					$rendered_content = '<pre style="white-space:pre-wrap;font-family:monospace,monospace;">' . esc_html($file_contents) . '</pre>';
 				} else {
-					$rendered_content = '<div class="error">'
-						. esc_html__('Block rendering error. Please contact administrator.', 'jasalt')
-						. '</div>';
+					if (current_user_can('manage_options')) {
+						$rendered_content = '<div class="error" style="border:2px dashed red; padding: 20px;">'
+							. esc_html__('Template file not found:', 'jasalt') . ' ' . esc_html($template_path)
+							. '</div>';
+					} else {
+						$rendered_content = '<div class="error">'
+							. esc_html__('Block rendering error. Please contact administrator.', 'jasalt')
+							. '</div>';
+					}
+				}
+			} else {
+				if (file_exists($template_path)) {
+					$rendered_content = Timber::compile($template_path, $context);
+				} else {
+					if (current_user_can('manage_options')) {
+						$rendered_content = '<div class="error" style="border:2px dashed red; padding: 20px;">'
+							. esc_html__('Template file not found:', 'jasalt') . ' ' . esc_html($template_path)
+							. '</div>';
+					} else {
+						$rendered_content = '<div class="error">'
+							. esc_html__('Block rendering error. Please contact administrator.', 'jasalt')
+							. '</div>';
+					}
 				}
 			}
 		} else {
