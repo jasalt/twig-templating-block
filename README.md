@@ -36,7 +36,7 @@ function get_user_data_binding_callback($source_args, $block_instance) {
 
 When new bindings are registered, the Site Editor needs to be reloaded. Afterwards it becomes available in Twig Templating Block attribute panel as follows.
 
-![Screenshot of editor block bindings selector](docs/editor_bindings_panel.png "Screenshot of editor block bindings selector")
+![Screenshot](docs/example.png "Screenshot")
 
 # Twig templating
 
