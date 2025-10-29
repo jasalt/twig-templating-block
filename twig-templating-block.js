@@ -137,21 +137,58 @@
 
                     contextBindings.forEach(function(binding) {
                         if (binding.variableName) {
-                            if (binding.preview_value) {
-                                context[binding.variableName] = binding.preview_value;
-                            } else if (binding.source) {
-                                var sourceObj = bindingSources.find(function(s) { return s.value === binding.source; });
-                                var sourceLabel = sourceObj ? sourceObj.label.split(' (')[0] : binding.source;
-                                var argsSuffix = '';
-                                if (binding.arguments) {
+                            var varName = (binding.variableName || '').trim();
+                            var isDestruct = varName.startsWith('{') && varName.endsWith('}');
+                            if (isDestruct) {
+                                var names = varName.slice(1, -1)
+                                    .split(',')
+                                    .map(function(s) { return s.trim(); })
+                                    .filter(function(s) { return s.length > 0; });
+
+                                if (binding.preview_value) {
                                     try {
-                                        var parsedArgs = JSON.parse(binding.arguments);
-                                        argsSuffix = ': ' + JSON.stringify(parsedArgs);
+                                        var parsedPreview = JSON.parse(binding.preview_value);
+                                        if (parsedPreview && typeof parsedPreview === 'object') {
+                                            names.forEach(function(n) { context[n] = parsedPreview[n]; });
+                                        } else {
+                                            names.forEach(function(n) { context[n] = binding.preview_value; });
+                                        }
                                     } catch (e) {
-                                        argsSuffix = ': [Invalid JSON]';
+                                        names.forEach(function(n) { context[n] = binding.preview_value; });
                                     }
+                                } else if (binding.source) {
+                                    var sourceObj = bindingSources.find(function(s) { return s.value === binding.source; });
+                                    var sourceLabel = sourceObj ? sourceObj.label.split(' (')[0] : binding.source;
+                                    var argsSuffix = '';
+                                    if (binding.arguments) {
+                                        try {
+                                            var parsedArgs = JSON.parse(binding.arguments);
+                                            argsSuffix = ': ' + JSON.stringify(parsedArgs);
+                                        } catch (e) {
+                                            argsSuffix = ': [Invalid JSON]';
+                                        }
+                                    }
+                                    names.forEach(function(n) {
+                                        context[n] = '[ ' + sourceLabel + argsSuffix + ' ]';
+                                    });
                                 }
-                              context[binding.variableName] = '[ ' + sourceLabel + argsSuffix + ' ]';
+                            } else {
+                                if (binding.preview_value) {
+                                    context[binding.variableName] = binding.preview_value;
+                                } else if (binding.source) {
+                                    var sourceObj = bindingSources.find(function(s) { return s.value === binding.source; });
+                                    var sourceLabel = sourceObj ? sourceObj.label.split(' (')[0] : binding.source;
+                                    var argsSuffix = '';
+                                    if (binding.arguments) {
+                                        try {
+                                            var parsedArgs = JSON.parse(binding.arguments);
+                                            argsSuffix = ': ' + JSON.stringify(parsedArgs);
+                                        } catch (e) {
+                                            argsSuffix = ': [Invalid JSON]';
+                                        }
+                                    }
+                                    context[binding.variableName] = '[ ' + sourceLabel + argsSuffix + ' ]';
+                                }
                             }
                         }
                     });

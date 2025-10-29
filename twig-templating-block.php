@@ -298,12 +298,46 @@ function render_twig_templating_block($attributes, $content, $block) {
 						}
 					}
 
-					// Use preview value if in editor and no binding value was found
-					if (defined('REST_REQUEST') && REST_REQUEST && empty($binding_value) && !empty($binding['preview_value'])) {
-						$binding_value = $binding['preview_value'];
+					// Parse variable name for destructuring support like "{ var1, var3 }"
+					$var_name_raw = trim($binding['variableName']);
+					$is_destructuring = false;
+					$destructured_vars = [];
+					if (preg_match('/^\{\s*(.+)\s*\}$/', $var_name_raw, $m)) {
+						$is_destructuring = true;
+						$parts = array_map('trim', explode(',', $m[1]));
+						$destructured_vars = array_values(array_filter($parts, function($v){ return $v !== ''; }));
 					}
 
-					$context[$binding['variableName']] = $binding_value;
+					// Use preview value if in editor and no binding value was found
+					if (defined('REST_REQUEST') && REST_REQUEST && empty($binding_value) && !empty($binding['preview_value'])) {
+						if ($is_destructuring) {
+							$decoded_preview = json_decode($binding['preview_value'], true);
+							if (json_last_error() === JSON_ERROR_NONE && is_array($decoded_preview)) {
+								$binding_value = $decoded_preview;
+							} else {
+								$binding_value = $binding['preview_value'];
+							}
+						} else {
+							$binding_value = $binding['preview_value'];
+						}
+					}
+
+					// Map binding value into context (supports destructuring)
+					if ($is_destructuring) {
+						$data = [];
+						if (is_array($binding_value)) {
+							$data = $binding_value;
+						} elseif (is_object($binding_value)) {
+							$data = (array) $binding_value;
+						}
+						foreach ($destructured_vars as $vn) {
+							if (array_key_exists($vn, $data)) {
+								$context[$vn] = $data[$vn];
+							}
+						}
+					} else {
+						$context[$binding['variableName']] = $binding_value;
+					}
 				}
 			}
 		}
