@@ -102,8 +102,9 @@
                 });
 
                 var bindingText = sourceLabels.length === 0 ? 'No bindings' : sourceLabels.join(', ');
+                var templateSuffix = (attributes.useExternalTemplate && attributes.templateName) ? ' / ' + attributes.templateName : '';
 
-                return el('div', {}, '[ ' + bindingText + ' ]');
+                return el('div', {}, '[ ' + bindingText + templateSuffix + ' ]');
             };
 
             // Function to render TwigJS preview
@@ -482,7 +483,7 @@
                         help: 'Choose how to render the preview in the editor.',
                         value: attributes.previewMode || 'default',
                         options: [
-                            { value: 'default', label: 'Default (Binding Labels)' },
+                            { value: 'default', label: 'Default (Binding Labels / Template)' },
                             { value: 'server-side', label: 'Server-Side Rendered' },
                             { value: 'twigjs', label: 'TwigJS Rendered (Beta)' },
                             { value: 'code', label: 'Show as Code' }
