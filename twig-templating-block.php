@@ -359,7 +359,7 @@ function render_twig_templating_block($attributes, $content, $block) {
 
 		if ($use_external && $template_name !== '') {
 			$theme_dir = get_stylesheet_directory();
-			$template_path = trailingslashit($theme_dir) . 'partials/' . ltrim($template_name, '/');
+			$template_path = trailingslashit($theme_dir) . 'twig/' . ltrim($template_name, '/');
 
 			if ($is_code_preview) {
 				if (file_exists($template_path)) {

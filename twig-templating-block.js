@@ -454,7 +454,7 @@
                 el(PanelBody, { title: 'Template Settings' },
                     el(ToggleControl, {
                         label: 'Use Template File',
-                        help: 'If enabled, render from a theme file under partials/ instead of inline Twig.',
+                        help: 'If enabled, render Twig template from theme twig/ dir instead of using inline Twig saved in block.',
                         checked: !!attributes.useExternalTemplate,
                         onChange: function(value) {
                             setAttributes({ useExternalTemplate: value });
@@ -462,7 +462,7 @@
                     }),
                     attributes.useExternalTemplate ? el(TextControl, {
                         label: 'Template File Name',
-                        help: 'Example: mypartial.twig. Resolved from your active theme at partials/mypartial.twig.',
+                        help: 'Example: mypartial.twig. Resolved from your active theme at twig/mypartial.twig.',
                         value: attributes.templateName || '',
                         onChange: function(value) {
                             setAttributes({ templateName: value });
@@ -515,7 +515,7 @@
                 return el('div', blockProps, [
                     attributes.useExternalTemplate ? el(TextControl, {
                         label: 'Template File Name',
-                        help: 'Example: mypartial.twig. Resolved from your active theme at partials/mypartial.twig.',
+                        help: 'Example: mypartial.twig. Resolved from your active theme at twig/mypartial.twig.',
                         value: attributes.templateName || '',
                         onChange: (value) => setAttributes({ templateName: value })
                     }) : el(TextareaControl, {
